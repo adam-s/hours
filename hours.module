@@ -1,0 +1,200 @@
+<?php
+/**
+ * Implements hook_field_info().
+ */
+function hours_field_info() {
+  return array(
+    'hours' => array(
+      'label' => t('Hours'),
+      'description' => t('Stores small text data.'),
+      'default_widget' => 'hours_widget',
+      'default_formatter' => 'hours_format',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function hours_field_schema($field) {
+  switch ($field['type']) {
+    case 'hours':
+      $columns = array(
+        'startday' => array(
+          'type' => 'varchar',
+          'length' => 10,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'endday' => array(
+          'type' => 'varchar',
+          'length' => 10,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'starthours_hours' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'starthours_minutes' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'endhours_hours' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'endhours_minutes' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'lastclient' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+      );
+      break;
+  }
+
+  return array('columns' => $columns);
+}
+
+
+/**
+ * Implementation of hook_field_widget_info()
+ */
+function hours_field_widget_info() {
+  $widgets = array();
+
+  $widgets['hours_widget'] = array(
+    'label' => t('Business Hours'),
+    'field types' => array('hours'),
+    'behaviors' => array(
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+      'default value' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+
+  return $widgets;
+}
+
+/**
+ * Build a dummy hours array.
+ */
+function hours_default_values() {
+  return array(
+    'startday' => '',
+    'endday' => '',
+    'starthours_hours' => '',
+    'starthours_minutes' => '',
+    'endhours_hours' => '',
+    'endhours_minutes' => '',
+    'lastclient' => '',
+  );
+}
+
+
+// Implementation of hook_field_widget_form
+function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  
+  // Get the default address used to build the widget form elements, looking
+  // first in the form state, then in the stored value for the field, and then
+  // in the default values of the instance.
+  $default = array();
+  if (!empty($form_state['input'][$langcode][$delta])) {
+    // Use the value from the form_state if available.
+    $default = $form_state['input'][$langcode][$delta];
+  }
+  elseif (!empty($items[$delta])) {
+    // Else use the saved value for the field.
+    $default = $items[$delta];
+  }
+  
+  // Merge in default values to provide a value for every expected array key.
+  $default = hours_default_values() + (array)$default;
+  
+  $weekday = array('' => '--') + date_week_days(TRUE);
+  $hours = array('' => '--') + date_hours('H', TRUE);
+  $minutes = array('' => '--') + date_minutes('i', TRUE, 5);
+  
+  $element['#prefix'] = '<div class="business-hours-block">';
+  $element['#suffix'] = '</div>';
+  
+  $element['#attached']['js'][] = array(
+      'data' => drupal_get_path('module', 'hours') . '/hours.js',
+      'type' => 'file',
+  );
+
+  $element['startday'] = array(
+    '#type' => 'select',
+    '#title' => 'From day',
+    '#options' => $weekday,
+    '#default_value' => $default['startday'],
+  );  
+  
+  $element['endday'] = array(
+    '#type' => 'select',
+    '#title' => 'To day',
+    '#options' => $weekday,
+    '#default_value' => $default['endday'],
+  );
+  
+  // Add hours select list.
+  $element['starthours_hours'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($hours),
+    '#required' => FALSE,
+    '#title' => t('From: '),
+    '#default_value' => $default['starthours_hours'],
+  );
+
+  // Add hours country select list.
+  $element['starthours_minutes'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($minutes),
+    '#required' => FALSE,
+    '#default_value' => $default['starthours_minutes'],
+  );  
+    
+  // Add hours select list.
+  $element['endhours_hours'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($hours),
+    '#required' => FALSE,
+    '#title' => t('To: '),
+    '#default_value' => $default['endhours_hours'],
+  );
+
+  // Add hours country select list.
+  $element['endhours_minutes'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($minutes),
+    '#required' => FALSE,
+    '#default_value' => $default['endhours_minutes'],
+  );
+  
+  $element['lastclient'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Last client',
+    '#default_value' => $default['lastclient'],
+  );
+  
+  return $element;
+}
+
+/**
+ * Implementation of hook_field_is_empty().
+ */
+function hours_field_is_empty($item, $field) {
+  return FALSE;
+}

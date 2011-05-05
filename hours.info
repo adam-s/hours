@@ -1,0 +1,4 @@
+name = Hours
+description = Business hours widget
+package = Fields
+core = 7.x
