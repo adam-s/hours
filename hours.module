@@ -309,26 +309,26 @@ function theme_hours_formatter_default($variables) {
   }
   
   if ($element['start_hours'] != '--') {
-    $output .= ' | <span class="hours-start">' . $element['start_hours'] . ':';
+    $output .= '<span class="hours-start"> | ' . $element['start_hours'];
     if ($element['start_minutes'] !== '--') {
-      $output .= $element['start_minutes'];
+      $output .= ':' . $element['start_minutes'] . '</span>';
     } else {
-      $output .= '00';
+      $output .= ':' .'00' . '</span>';
     }
     if ($element['start_meridiem']) {
-      $output .= ' ' . $element['start_meridiem'];
+      $output .= '<span class = "hours-meridiem"> ' . $element['start_meridiem'] . '</span>';
     }
   }
   
   if ($element['end_hours'] != '--') {
-    $output .= ' to <span class="hours-end">' . $element['end_hours'] . ':';
+    $output .= '<span class="hours-end"> to ' . $element['end_hours'];
     if ($element['end_minutes'] !== '--') {
-      $output .= $element['end_minutes'];
+      $output .= ':' . $element['end_minutes'] . '</span>';
     } else {
-      $output .= '00';
+      $output .= ':' .'00' . '</span>';
     }
     if ($element['end_meridiem']) {
-      $output .= ' ' . $element['end_meridiem'];
+      $output .= '<span class = "hours-meridiem"> ' . $element['end_meridiem'] . '</span>';
     }
   }
   
