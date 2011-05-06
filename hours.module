@@ -231,7 +231,7 @@ function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langc
  * Implementation of hook_field_is_empty().
  */
 function hours_field_is_empty($item, $field) {
-  return $item['start_day'] == '--';
+  return $item['start_day'] == '--' && $item['end_day'] == '--';
 }
 
 /**
@@ -319,7 +319,7 @@ function theme_hours_formatter_default($variables) {
     } else {
       $output .= ':' .'00' . '</span>';
     }
-    if ($element['start_meridiem']) {
+    if ($element['start_meridiem'] != '--') {
       $output .= '<span class = "hours-meridiem"> ' . $element['start_meridiem'] . '</span>';
     }
   }
@@ -331,7 +331,7 @@ function theme_hours_formatter_default($variables) {
     } else {
       $output .= ':' .'00' . '</span>';
     }
-    if ($element['end_meridiem']) {
+    if ($element['end_meridiem'] != '--') {
       $output .= '<span class = "hours-meridiem"> ' . $element['end_meridiem'] . '</span>';
     }
   }
