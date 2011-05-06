@@ -1,0 +1,6 @@
+/**
+* Business hours styling
+*/
+.business-hours-block, .business-hours-block div, .business-hours-block div.form-item label{
+    display: inline;
+  }
