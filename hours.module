@@ -149,6 +149,10 @@ function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langc
       'data' => drupal_get_path('module', 'hours') . '/hours.js',
       'type' => 'file',
   );
+  
+  $element['#attached']['css'][] = array(
+      'data' => drupal_get_path('module', 'hours') . '/hours.css',
+  );
 
   $element['start_day'] = array(
     '#type' => 'select',
