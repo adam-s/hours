@@ -3,8 +3,8 @@
   Drupal.behaviors.hours = {
     attach: function (context) {
   
-      $('.business-hours-block [id$=-startday]').change(function (e) {
-        $('[id$=-endday]', $(this).parent().parent()).val($(this).val());
+      $('.business-hours-block [id$=-start-day]').change(function (e) {
+        $('[id$=-end-day]', $(this).parent().parent()).val($(this).val());
       });
   
     }

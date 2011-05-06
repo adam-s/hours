@@ -8,7 +8,7 @@ function hours_field_info() {
       'label' => t('Hours'),
       'description' => t('Stores small text data.'),
       'default_widget' => 'hours_widget',
-      'default_formatter' => 'hours_format',
+      'default_formatter' => 'hours_default',
     ),
   );
 }
@@ -20,43 +20,55 @@ function hours_field_schema($field) {
   switch ($field['type']) {
     case 'hours':
       $columns = array(
-        'startday' => array(
+        'start_day' => array(
           'type' => 'varchar',
           'length' => 10,
           'not null' => FALSE,
           'default' => '',
         ),
-        'endday' => array(
+        'end_day' => array(
           'type' => 'varchar',
           'length' => 10,
           'not null' => FALSE,
           'default' => '',
         ),
-        'starthours_hours' => array(
+        'start_hours' => array(
           'type' => 'varchar',
           'length' => 2,
           'not null' => FALSE,
           'default' => '',
         ),
-        'starthours_minutes' => array(
+        'start_minutes' => array(
           'type' => 'varchar',
           'length' => 2,
           'not null' => FALSE,
           'default' => '',
         ),
-        'endhours_hours' => array(
+        'start_meridiem' => array(
           'type' => 'varchar',
           'length' => 2,
           'not null' => FALSE,
           'default' => '',
         ),
-        'endhours_minutes' => array(
+        'end_hours' => array(
           'type' => 'varchar',
           'length' => 2,
           'not null' => FALSE,
           'default' => '',
         ),
-        'lastclient' => array(
+        'end_minutes' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'end_meridiem' => array(
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => FALSE,
+          'default' => '',
+        ),
+        'close' => array(
           'type' => 'varchar',
           'length' => 2,
           'not null' => FALSE,
@@ -93,13 +105,15 @@ function hours_field_widget_info() {
  */
 function hours_default_values() {
   return array(
-    'startday' => '',
-    'endday' => '',
-    'starthours_hours' => '',
-    'starthours_minutes' => '',
-    'endhours_hours' => '',
-    'endhours_minutes' => '',
-    'lastclient' => '',
+    'start_day' => '',
+    'end_day' => '',
+    'start_hours' => '',
+    'start_minutes' => '',
+    'start_meridiem' => '',
+    'end_hours' => '',
+    'end_minutes' => '',
+    'end_meridiem' => '',
+    'close' => '',
   );
 }
 
@@ -121,11 +135,12 @@ function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langc
   }
   
   // Merge in default values to provide a value for every expected array key.
-  $default = hours_default_values() + (array)$default;
+  $default += hours_default_values();
   
   $weekday = array('' => '--') + date_week_days(TRUE);
-  $hours = array('' => '--') + date_hours('H', TRUE);
-  $minutes = array('' => '--') + date_minutes('i', TRUE, 5);
+  $hours = array('' => '--') + date_hours('g', TRUE);
+  $minutes = array('' => '--') + date_minutes('i', TRUE, 15);
+  $meridiem = array('' => '--') + date_ampm('i', TRUE);
   
   $element['#prefix'] = '<div class="business-hours-block">';
   $element['#suffix'] = '</div>';
@@ -135,58 +150,74 @@ function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langc
       'type' => 'file',
   );
 
-  $element['startday'] = array(
+  $element['start_day'] = array(
     '#type' => 'select',
-    '#title' => 'From day',
-    '#options' => $weekday,
-    '#default_value' => $default['startday'],
+    '#title' => 'From: ',
+    '#options' => drupal_map_assoc($weekday),
+    '#default_value' => $default['start_day'],
   );  
   
-  $element['endday'] = array(
+  $element['end_day'] = array(
     '#type' => 'select',
-    '#title' => 'To day',
-    '#options' => $weekday,
-    '#default_value' => $default['endday'],
+    '#title' => 'To: ',
+    '#options' => drupal_map_assoc($weekday),
+    '#default_value' => $default['end_day'],
   );
   
   // Add hours select list.
-  $element['starthours_hours'] = array(
+  $element['start_hours'] = array(
     '#type' => 'select',
     '#options' => drupal_map_assoc($hours),
     '#required' => FALSE,
-    '#title' => t('From: '),
-    '#default_value' => $default['starthours_hours'],
+    '#title' => t('Open: '),
+    '#default_value' => $default['start_hours'],
   );
 
   // Add hours country select list.
-  $element['starthours_minutes'] = array(
+  $element['start_minutes'] = array(
     '#type' => 'select',
     '#options' => drupal_map_assoc($minutes),
     '#required' => FALSE,
-    '#default_value' => $default['starthours_minutes'],
+    '#default_value' => $default['start_minutes'],
+  );  
+
+  // Add hours country select list.
+  $element['start_meridiem'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($meridiem),
+    '#required' => FALSE,
+    '#default_value' => $default['start_meridiem'],
   );  
     
   // Add hours select list.
-  $element['endhours_hours'] = array(
+  $element['end_hours'] = array(
     '#type' => 'select',
     '#options' => drupal_map_assoc($hours),
     '#required' => FALSE,
-    '#title' => t('To: '),
-    '#default_value' => $default['endhours_hours'],
+    '#title' => t('Close: '),
+    '#default_value' => $default['end_hours'],
   );
 
   // Add hours country select list.
-  $element['endhours_minutes'] = array(
+  $element['end_minutes'] = array(
     '#type' => 'select',
     '#options' => drupal_map_assoc($minutes),
     '#required' => FALSE,
-    '#default_value' => $default['endhours_minutes'],
-  );
+    '#default_value' => $default['end_minutes'],
+  );  
+
+  // Add hours country select list.
+  $element['end_meridiem'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc($meridiem),
+    '#required' => FALSE,
+    '#default_value' => $default['end_meridiem'],
+  );  
   
-  $element['lastclient'] = array(
+  $element['close'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Last client',
-    '#default_value' => $default['lastclient'],
+    '#title' => 'Last Client',
+    '#default_value' => $default['close'],
   );
   
   return $element;
@@ -196,5 +227,129 @@ function hours_field_widget_form(&$form, &$form_state, $field, $instance, $langc
  * Implementation of hook_field_is_empty().
  */
 function hours_field_is_empty($item, $field) {
-  return FALSE;
+  return $item['start_day'] == '--';
+}
+
+/**
+*  Implementation of hook_field_validate()
+*/
+function hours_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if ($item['end_day'] != '--' && $item['start_day'] == '--') {
+      $errors[$field['field_name']][$langcode][$delta][] = array( 
+        'error' => t('A from day needs to be choosen if a to day is selected. If they are the same -- forexample, Monday and Monday, the whole line when viewed will only be for Monday.'),
+      );
+    }
+  }
+}
+
+
+/**
+* Implementation of hook_theme()
+*/
+function hours_theme(){
+  return array(
+    'hours_formatter_default' => array(
+      'variables' => array('element' => NULL,),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function hours_field_formatter_info() {
+  return array(
+    'hours_default' => array(
+      'label' => t('Default'),
+      'field types' => array('hours'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function hours_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  
+  $element = array();
+
+  switch ($display['type']) {
+  // Address formatted and straight up
+    case 'hours_default':
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#theme' => array('hours_formatter_default'),
+          '#element' => $item,
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+* Returns HTML for a hours field value.
+* 
+* @param mixed $element
+* @return mixed
+*/
+
+function theme_hours_formatter_default($variables) {
+  
+  $element = $variables['element'];
+  
+  $output = '<div class="hours-item">';
+  
+  if ($element['start_day'] == $element['end_day']) {
+    $output .= '<span class="hours-day">' . $element['start_day'] . '</span>';
+  } else {
+    $output .= '<span class="hours-day">' . $element['start_day'] . ' - ' . $element['end_day'] . '</span>';
+  }
+  
+  if ($element['start_hours'] != '--') {
+    $output .= ' | <span class="hours-start">' . $element['start_hours'] . ':';
+    if ($element['start_minutes'] !== '--') {
+      $output .= $element['start_minutes'];
+    } else {
+      $output .= '00';
+    }
+    if ($element['start_meridiem']) {
+      $output .= ' ' . $element['start_meridiem'];
+    }
+  }
+  
+  if ($element['end_hours'] != '--') {
+    $output .= ' to <span class="hours-end">' . $element['end_hours'] . ':';
+    if ($element['end_minutes'] !== '--') {
+      $output .= $element['end_minutes'];
+    } else {
+      $output .= '00';
+    }
+    if ($element['end_meridiem']) {
+      $output .= ' ' . $element['end_meridiem'];
+    }
+  }
+  
+  if ($element['end_hours'] != '--' && $element['close'] != 0) {
+    $output .= '<span class = "hours-close"> ' . t('(or until the last customer)') . '</span>';
+  } elseif ($element['close']) {
+    $output .= '<span class = "hours-close"> ' .t('until the last customer') . '</span>';
+  }
+  
+  $output .= '</div>';
+  
+  return $output;
+}
+
+/**
+*  Implements hook_form_FORM_ID_form_alter to force unlimited values
+*/
+function hours_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if ($form['#field']['type'] == 'hours') {
+    // Hide the cardinality setting on the field settings for properties fields.
+    $form['field']['cardinality']['#default_value'] = FIELD_CARDINALITY_UNLIMITED;
+    $form['field']['#access'] = FALSE;
+  }
 }
